@@ -324,11 +324,15 @@ static int push_with_options(struct transport *transport, int flags)
 				     TRANS_OPT_RECEIVEPACK, receivepack);
 	transport_set_option(transport, TRANS_OPT_THIN, thin ? "yes" : NULL);
 
-	if (!is_empty_cas(&cas)) {
+	if (!is_empty_cas(&cas) || push_always_force_with_lease) {
 		if (!transport->smart_options)
 			die("underlying transport does not support --%s option",
 			    CAS_OPT_NAME);
-		transport->smart_options->cas = &cas;
+		if (!is_empty_cas(&cas)) {
+        		transport->smart_options->cas = &cas;
+		} else {
+          		transport->smart_options->cas->use_tracking_for_rest = 1;
+		}
 	}
 
 	if (verbosity > 0)
